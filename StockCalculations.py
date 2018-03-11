@@ -41,16 +41,8 @@ class StockCalculations():
 
         stockSymbol= symbols.get(symbol)
 
-        
-        if stockSymbol is None:
+        if stockSymbol is None or float(price) == 0.0:
                 return False
-            
-
-        if float(price) == 0.00 :
-                return False
-                raise ZeroDivisionError
-        
-
 
         if filedata[int(symbol)][0] == str(stockSymbol):
             if filedata[int(symbol)][1] == 'Common':
@@ -117,7 +109,7 @@ class StockCalculations():
         '''
         Calculation of voumne weighted stock price in last 5 mins
         :param stockSymbol:
-        :return:
+        :return: volumeWeightedStockPrice
         '''
         stockSymbol=symbols.get(Symbol)
         tradeTime = datetime.now()-timedelta(minutes=5)
