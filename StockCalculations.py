@@ -1,19 +1,28 @@
+from __future__ import division
 from datetime import datetime, timedelta
-import csv,pickle,os
+import csv,os
 from pprint import pprint as pp
-import TradeData
+from TradeData import TradeData
+
+
+
 
 #Reading the CSV file 
 
-csv.register_dialect('piper', delimiter='|', quoting=csv.QUOTE_NONE)
+csv.register_dialect('piper', delimiter=',', quoting=csv.QUOTE_NONE)
+reader= csv.reader(open('data.csv'))
+filedata=[]
+for line in reader:
+    filedata.append(line)
 
-tradeData = list(csv.DictReader('data.csv', dialect='piper'))
 
-symbols = ['TEA', 'POP', 'ALE', 'GIN', 'JOE']
-stocks = dict(enumerate(symbols, 1))
 
-indicators = ['BUY', 'SELL']
-indicatorMap = dict(enumerate(indicators, 1))
+
+symbols = { '1': "TEA",    '2': "POP",    '3': "ALE",    '4': "GIN",    '5': "JOE"}
+
+indicatorMap = { '1': "BUY",    '2': "SELL"}
+
+
 
 class StockCalculations():
     '''
@@ -21,33 +30,35 @@ class StockCalculations():
     '''
 
 
-    def dividendCalc(self,Symbol,Price):
+
+    def dividendCalc(self,symbol,price):
         '''
         Calculation of divident yeild. 
         :param stockSymbol: stock symbol
         :param stockPrice: input price for the stock
         :return: dividend
         '''
-        
-        stockSymbol= stocks.get(int(Symbol),None)
-        print (stockSymbol)
+
+        stockSymbol= symbols.get(symbol)
+
         
         if stockSymbol is None:
                 return False
             
 
-        if float(Price) == 0.00 :
+        if float(price) == 0.00 :
                 return False
                 raise ZeroDivisionError
         
-        for stck in tradeData:
-            if stck['stockSymbol'] == stockSymbol:
-                if stck['stockType'] == 'Common':
-                    dividend = float(stck.get(lastDividend,0))/float(Price)
-                elif stck['stockType'] == 'Preferred':
-                    dividend = (float(stck.get(fixedDividend,0))/100) * (float(stck.get(parValue,0))/ float(Price))
-                else:
-                    pass
+
+
+        if filedata[int(symbol)][0] == str(stockSymbol):
+            if filedata[int(symbol)][1] == 'Common':
+                dividend = float(filedata[int(symbol)][2])/float(price)
+            elif filedata[int(symbol)][1] == 'Preferred':
+                dividend = (float(filedata[int(symbol)][3])/100) * (float(filedata[int(symbol)][4])/ float(price))
+            else:
+                pass
         return dividend
 
     
@@ -58,16 +69,16 @@ class StockCalculations():
         :param stockPrice:
         :return: PE ration
         '''
-        dividend= self.dividendCalc(stockSymbol,stockPrice)
-        peratio = float(stockPrice)/float(dividend)
+        peratio = 0
+        try:
+            dividend= self.dividendCalc(stockSymbol,stockPrice)
+            peratio = float(stockPrice)/float(dividend)
+        except ZeroDivisionError:
+            pass
         return peratio
 
 
-    def deletefileContent(fileName):
-        f= open('fileName',w)
-        f.close()
-
-    def tradeRecord(self,stockSymbol, stockQuantity, indicator, stockTradePrice):
+    def tradeRecord(self,Symbol, Quantity, ind,tradePrice):
         '''
         Recording the trade in the file
         :param stockSymbol:
@@ -76,57 +87,74 @@ class StockCalculations():
         :param stockTradePrice:
         :return: record the trade in the tradeRecord file
         '''
-        tradeRecordFile = open('tradeRecord','r')
+        stockSymbol=symbols.get(Symbol)
+        stockQuantity= int(Quantity)
+        indicator=indicatorMap.get(ind)
+        stockTradePrice=float(tradePrice)
+
         if not os.path.getsize("tradeRecord") == 0:
-            listRecord = pickle.load(tradeRecordFile)
+            with(open('tradeRecord','r')) as f:
+                listRecord=[ f.read()]
         else:
             listRecord = []
 
 
-        stockSymbol=stocks.get(None)
-        stockQuantity= int(stockQuantity)
-        indicator=indicatorMap.get(None)
-        stockTradePrice=float(stockTradePrice)
-
         try:
             recordData=TradeData(stockSymbol,stockQuantity,indicator,stockTradePrice,datetime.now())
-            tradeRecordFile=open('tradeRecord','w')
-            listRecord.append(recordData)
-            pickle.dump(listRecord,tradeRecordFile)
-            pp('Trade Record : ',recordData.tradeDetails())
+            listRecord.append(recordData.tradeDetails())
+            with open('tradeRecord','w') as f:
+                f.write('\n'.join(listRecord))
+
+            print 'Trade Record : ',recordData.tradeDetails()
         except EOFError:
             pp('No print Data')
-        
-        tradeRecordFile.close()
+        finally:
+            f.close()
 
 
-    def volumeWeightedStockPrice(self,stockSymbol):
+    def volumeWeightedStockPrice(self,Symbol):
 
         '''
         Calculation of voumne weighted stock price in last 5 mins
         :param stockSymbol:
         :return:
         '''
-        stockSymbol=stocks.get(None)
-        tradeTime = datetime.now()-timedelta(minutes=5)
+        stockSymbol=symbols.get(Symbol)
+        tradeTime = datetime.now()-timedelta(minutes=200)
         totalQuantity = 0
-        priceSum=0
+        totalstockPrice=0
 
+        listRecord =[]
 
-        tradeRecordFile= open('tradeRecord','r')
         if not os.path.getsize('tradeRecord')==0:
-            listRecord = pickle.load(tradeRecordFile)
-            for r in listRecord:
-                if r.stockSymbol == stockSymbol and r.tradeCreationTime >= tradeTime:
-                    r.tradeDetails()
-                    totalQuantity = r.stockQuantity
-                    priceSum== (r.stockQuantity *r.stockTradePrice)
 
-            if priceSum >0 and totalQuantity >0 :
-                volumeWeightedStockPrice = priceSum/totalQuantity
-                print ('Volumen Weighted Stock Price: ',float(volumeWeightedStockPrice))
-            else:
-                print ('No trade record for the given stock {} in last 5 mins'.format(stockSymbol))
+            with open('tradeRecord') as f:
+                for line in  f.read().splitlines():
+                    listRecord.append(line)
+        stockQuantity = int(float((listRecord[1][17:]).rstrip()))
+
+
+        for j in range(0,len(listRecord)+1,5):
+            try:
+                if j + 1 > len(listRecord):
+                    break
+
+                elif datetime.strptime(listRecord[j+4][-26:],"%Y-%m-%d %H:%M:%S.%f" ) > tradeTime and (listRecord[j][-4:]).rstrip() == stockSymbol:
+                    totalQuantity += int(float((listRecord[j+1][17:]).rstrip()))
+                    totalstockPrice += int(float((listRecord[j+3][19:]).rstrip()))
+            except IndexError:
+                pass
+        volumeWeightedStockPrice = 0
+
+        if totalstockPrice > 0 and totalQuantity > 0:
+            for key in symbols.keys():
+
+                volumeWeightedStockPrice = (totalstockPrice * stockQuantity)/totalQuantity
+                #print 'Volumen Weighted Stock Price: ',float(volumeWeightedStockPrice)
+        return volumeWeightedStockPrice
+
+
+
 
 
     def shareIndex(self):
@@ -135,25 +163,27 @@ class StockCalculations():
         Share index calculation
         :return: prints the share index
         '''
-        priceSum= 0
-        totalQuantity= 0
-        tradeRecordFile= open('tradeRecord','r')
-        
-        if not os.path.getsize('tradeRecord')==0:
-            listRecord= pickle.load(tradeRecordFile)
-            
-            for r in listRecord:
-                if r.stockSymbol == stockSymbol and r.tradeCreationTime >= tradeTime:
-                    r.tradeDetails()
-                    totalQuantity = r.stockQuantity
-                    priceSum== (r.stockQuantity * r.stockTradePrice)
 
-            if priceSum > 0 and totalQuantity > 0:
-                gbceShareIndex = priceSum ** (1/totalQuantity)
+        listRecord = []
 
-                print('Share Index: ', gbceShareIndex)
-            else:
-                return 'No trade records'
+        if not os.path.getsize('tradeRecord') == 0:
+            with open('tradeRecord') as f:
+                for line in f.read().splitlines():
+                    listRecord.append(line)
+
+        items= len(listRecord)+1
+        root= items/5
+        sum = 0
+
+        for key in symbols.keys():
+            sum += self.volumeWeightedStockPrice(key)
+
+
+        if sum >0 and root >0:
+            gbceShareIndex = sum ** (1/root)
+            print'Share Index: ', gbceShareIndex
+        else:
+            print 'No trade records'
 
 
 

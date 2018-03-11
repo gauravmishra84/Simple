@@ -10,8 +10,8 @@ Its the main function.
 
 option = 0
 while True:
-    print ("****************************")
-    option = input("Enter your choice:" +
+    print "****************************"
+    option =raw_input("Enter your choice:" +
                        "\n***********************************" +
                        "\n| 1 | dividend yield" +
                        "\n| 2 | P/E Ratio" +
@@ -21,27 +21,27 @@ while True:
                        "\n*************************************\n>")
 
     if(option == '1'):
-        print("****************************")
-        symbol = input("Choose a stock symbol:" +
+        print"****************************"
+        symbol = raw_input("Choose a stock symbol:" +
                            "\n| 1 | TEA " +
                            "\n| 2 | POP " +
                            "\n| 3 | ALE " +
                            "\n| 4 | GIN " +
                            "\n| 5 | JOE \n" +
-                           "**********************************\n>").isupper()
+                           "**********************************\n>")
 
-        price = input("Enter the stock price \n")
-        print ("***********************************")
-
+        price = raw_input("Enter the stock price \n")
+        print "***********************************"
+        
         dividend = StockCalculations().dividendCalc(symbol, price)
 
-        print ("Dividend Yield : ", dividend)
+        print "Dividend  : ", dividend
 
-        print ("*****************************************")
-        print ("\n \n")
+        print "*****************************************"
+        print "\n \n"
 
     elif(option == '2'):
-        symbol = input("Choose a stock symbol:" +
+        symbol = raw_input("Choose a stock symbol:" +
                            "\n| 1 | TEA " +
                            "\n| 2 | POP " +
                            "\n| 3 | ALE " +
@@ -49,18 +49,18 @@ while True:
                            "\n| 5 | JOE \n" +
                            "************************************\n>")
 
-        price = input("Enter the stock price \n")
-        print ("*********************************")
+        price = raw_input("Enter the stock price \n")
+        print "*********************************"
 
         peratio = StockCalculations().peRatioCalc(symbol, price)
 
-        print ("P/E Ratio : ", peratio)
+        print "P/E Ratio : ", peratio
 
-        print ("*****************************************")
-        print ("\n \n")
+        print "*****************************************"
+        print "\n \n"
 
     elif(option == '3'):
-        symbol = input("Choose a stock symbol:" +
+        symbol = raw_input("Choose a stock symbol:" +
                            "\n| 1 | TEA " +
                            "\n| 2 | POP " +
                            "\n| 3 | ALE " +
@@ -68,23 +68,23 @@ while True:
                            "\n| 5 | JOE \n" +
                            "*******************************************\n>")
 
-        quantity = input("Quantity of stocks \n")
+        quantity = raw_input("Quantity of stocks \n")
 
-        indicator = input("Choose a indicator :" +
+        indicator = raw_input("Choose an indicator :" +
                               "\n| 1 | BUY " +
                               "\n| 2 | SELL \n" +
                               "******************************************\n>")
 
-        stockTradePrice = input("Enter stock price \n")
+        stockTradePrice = raw_input("Enter stock price \n")
 
 
-        StockCalculations().tradeRecord(stockSymbol, stockQuantity, indicator, stockTradePrice)
+        StockCalculations().tradeRecord(symbol, quantity, indicator, stockTradePrice)
 
-        print ("****************************************")
-        print ("\n \n")
+        print "****************************************"
+        print "\n \n"
 
     elif(option == '4'):
-        symbol = input("Choose a stock symbol:" +
+        symbol = raw_input("Choose a stock symbol:" +
                            "\n| 1 | TEA " +
                            "\n| 2 | POP " +
                            "\n| 3 | ALE " +
@@ -92,15 +92,15 @@ while True:
                            "\n| 5 | JOE \n" +
                            "**************************************\n>")
 
-        print ("*****************")
+        print "*****************"
 
-        StockCalculations().volumeWeightedStockPrice(symbol)
 
-        print ("*****************************************")
-        print ("\n \n")
+        print 'VolumenWeightedStockPrice: {}'.format(StockCalculations().volumeWeightedStockPrice(symbol))
+        print "*****************************************"
+        print "\n \n"
 
     elif(option == '5'):
         StockCalculations().shareIndex()
 
-        print( "*****************************************")
-        print ("\n \n")
+        print "*****************************************"
+        print "\n \n"

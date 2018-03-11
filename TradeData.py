@@ -13,5 +13,5 @@ class TradeData():
 
     def tradeDetails(self):
         tradeData = "stockSymbol : {0} \n stockQuantity : {1} \n Indicator : {2} \n stockTradePrice : {3} \n tradeCreationTime : {4}".format(
-            self._stockSymbol, self._stockQuantity, self._indicator, self._stockTradePrice, self._tradeCreationTime)
+            self.stockSymbol, self.stockQuantity, self.indicator, self.stockTradePrice, self.tradeCreationTime)
         return tradeData
