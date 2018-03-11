@@ -120,7 +120,7 @@ class StockCalculations():
         :return:
         '''
         stockSymbol=symbols.get(Symbol)
-        tradeTime = datetime.now()-timedelta(minutes=200)
+        tradeTime = datetime.now()-timedelta(minutes=5)
         totalQuantity = 0
         totalstockPrice=0
 
